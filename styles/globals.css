@@ -1,0 +1,16 @@
+/* ./styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.main {
+  width: 100vw;
+  height: 100vh;
+  background: url(../public/assets/img/bg.png) no-repeat center;
+  background-size: cover;
+}
+
+.base-btn {
+  background: linear-gradient(180deg, #ffa74c 0%, #ff6e25 100%);
+  border-radius: 0.625rem;
+}
