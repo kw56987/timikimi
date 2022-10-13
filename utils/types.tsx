@@ -14,4 +14,8 @@ export interface LanType {
   [key: string]: any
 }
 
+export interface ChainType {
+  [key: number]: any
+}
+
 export type Res = 'success' | 'fail'

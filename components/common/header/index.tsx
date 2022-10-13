@@ -1,4 +1,4 @@
-import { FC, useContext } from "react";
+import { FC, useContext, useRef, useEffect, useState } from "react";
 import Image from 'next/image'
 import LogoPic from '../../../public/assets/img/logo.png'
 import TwitterPic from '../../../public/assets/img/twitter.png'
@@ -6,12 +6,46 @@ import DiscordPic from '../../../public/assets/img/discord.png'
 import BaseBtn from '../../ui/base-btn'
 import BaseCtx from '../../../base-content'
 import * as T from '../../../utils'
+import { useWeb3, useSwitchNetwork } from '@3rdweb/hooks'
 
 interface Prop { }
 
 const Header: FC<Prop> = () => {
 
-  const { setCurrentLan, currentLan, setShowModal, setShowWalletSelect, currentAccount, currentChianId } = useContext(BaseCtx)
+  const { setCurrentLan, currentLan, setShowModal, setShowWalletSelect, setShowToast, setToastText, setToastType, setLoading } = useContext(BaseCtx)
+  const [isShowSwitch, setShowSwitch] = useState(false)
+
+  const { address, chainId = -1 } = useWeb3()
+  const { switchNetwork } = useSwitchNetwork()
+
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const handleShowToast = (text: string) => {
+      setShowToast!(true)
+      setToastText!(text)
+      setToastType!('Warn')
+
+      const timer = setTimeout(() => {
+        setShowToast!(false)
+        clearTimeout(timer)
+      }, 2000)
+    }
+
+    const connect = localStorage.getItem('_is_connect')
+
+    if (!T.SUPPORTED_CHAIN_IDS.includes(chainId) && connect && chainId === -1) {
+      setShowSwitch(true)
+      // handleShowToast(`Please switch to chain id {${T.SUPPORTED_CHAIN_IDS.join(',')}}`)
+    } else {
+      setShowSwitch(false)
+    }
+  }, [chainId, setShowToast, setToastText, setToastType, setLoading]);
 
   return (
     <div className="h-nav bg-nav-bg flex items-center justify-between pl-nav-p pr-nav-p">
@@ -34,7 +68,7 @@ const Header: FC<Prop> = () => {
             height={32}
           />
         </div>
-        <div 
+        <div
           className='ml-12 mr-12'
           onClick={() => {
             window.open('https://discord.gg/bhpedVXBTD')
@@ -65,11 +99,11 @@ const Header: FC<Prop> = () => {
           >JP</div>
         </div>
         {
-          currentAccount
+          address
             ?
             <div className="flex items-center justify-center">
               {
-                currentChianId !== '0x13881'
+                !T.SUPPORTED_CHAIN_IDS.includes(chainId)
                   ?
                   <div className="flex items-center justify-center h-10 pl-5 pr-5 rounded-btn-r border border-orange-100 bg-orange-100 mr-6">
                     <div className="w-2 h-2 rounded bg-gradient-to-r from-orange-200 to-orange-300 border border-white mr-2.5 drop-shadow-dot-shadow-100"></div>
@@ -78,24 +112,26 @@ const Header: FC<Prop> = () => {
                   :
                   <div className="flex items-center justify-center h-10 pl-5 pr-5 rounded-btn-r border border-orange-100 bg-white mr-6">
                     <div className="w-2 h-2 rounded bg-gradient-to-r from-green-100 to-green-200 border border-white mr-2.5 drop-shadow-dot-shadow"></div>
-                    <div className="text-base text-f-black">{T.CHAIN_INFO.DEFAULT_CHAIN_NAME}</div>
+                    <div className="text-base text-f-black">{T.DEFAULT_CHAIN[chainId].chainName}</div>
                   </div>
               }
               <div className="flex items-center justify-center h-10 pl-5 pr-5 rounded-btn-r border border-orange-100 bg-white">
-                <div className="text-lg text-f-black">{T.formatAddress('0x8899B50613AB56F4D21ff5407d3f16AdF5fce884')}</div>
+                <div className="text-lg text-f-black">{T.formatAddress(address)}</div>
               </div>
             </div>
             :
             <BaseBtn
-              btnText={T.Lan[currentLan].connect}
+              btnText={!isShowSwitch ? T.Lan[currentLan].connect : T.Lan[currentLan].switch}
               handleClick={() => {
-                setShowModal!(true)
-                setShowWalletSelect!(true)
+                if (isShowSwitch) {
+                  switchNetwork(T.DEFAULT_SUPPORTED_CHAIN_ID)
+                } else {
+                  setShowModal!(true)
+                  setShowWalletSelect!(true)
+                }
               }}
             />
         }
-
-
       </div>
     </div >
   )

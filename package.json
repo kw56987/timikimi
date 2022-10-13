@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@3rdweb/hooks": "^1.9.2",
     "@apollo/client": "^3.6.9",
     "@ethersproject/providers": "^5.7.1",
     "@metamask/detect-provider": "^1.2.0",
@@ -19,8 +20,7 @@
     "next": "12.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "urql": "^3.0.3",
-    "use-wallet-ethers": "^1.0.67"
+    "urql": "^3.0.3"
   },
   "devDependencies": {
     "@types/node": "18.7.18",

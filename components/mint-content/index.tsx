@@ -1,29 +1,30 @@
-import { FC, useContext, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useState, useRef, useCallback } from "react";
 import Image from 'next/image'
 import LogoPic from '../../public/assets/img/logo.png'
 import BaseBtn from '../ui/base-btn'
 import * as T from '../../utils'
 import BaseCtx from '../../base-content'
 import axios from "axios";
+import { useWeb3 } from '@3rdweb/hooks'
 
 interface Prop { }
 
 const MintContent: FC<Prop> = () => {
 
-  const { currentLan, setShowToast, setToastText, setToastType, currentAccount, setLoading, setShowModal, setShowNFT, setNftInfo } = useContext(BaseCtx)
+  const { currentLan, setShowToast, setToastText, setToastType, setLoading, setShowModal, setShowNFT, setNftInfo } = useContext(BaseCtx)
 
-  const [ticket, setTicket] = useState<{ statusCode: number, message: string }>({
-    statusCode: 0,
-    message: ''
-  })
+  /* 1 not white list 
+  *  2 in white list and activity not start
+  *  3 mint
+  *  4 mint ok show nft
+  */
+  const [btnStatus, setBtnStatus] = useState<1 | 2 | 3 | 4 | 5>(1)
+  const [nftInfo, setNftInfns] = useState<any>(0)
 
-  const [activityTime, setActivityTime] = useState<{ start: number, end: number }>({
-    start: 0,
-    end: 0
-  })
-
-  const [countdown, setCountdown] = useState<string>('')
+  const [countdown, setCountdown] = useState<string>('d-h-m-s')
   const [amount, setAmount] = useState(0)
+  const { address, chainId = 0 } = useWeb3()
+
 
   const handleShowToast = (key: string) => {
     const lan = T.Lan[currentLan]
@@ -37,11 +38,11 @@ const MintContent: FC<Prop> = () => {
     }, 2000)
   }
 
-  const getNft = async () => {
+  const getNft = useCallback(async () => {
     const tokensQuery = `
         query {
           users(where: {
-            id: "${currentAccount}"
+            id: "${address!.toLowerCase()}"
             }, first: 5) {
           id
           tokens {
@@ -51,63 +52,76 @@ const MintContent: FC<Prop> = () => {
       }
 		`
     return await T.GraphQl.query(tokensQuery, {}).toPromise()
+  }, [address])
+
+  const isFirstRender = useRef(true);
+
+  const countDown = (end: number) => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime() / 1000
+      if (now > end) {
+        clearInterval(timer)
+        setBtnStatus(3)
+      }
+      setCountdown(T.countDown(end))
+    }, 1000)
   }
+
+  const getTime = useCallback(() => {
+    axios.get(`${T.HTTP_SERVER}events/lotteries/times`).then((v) => {
+      console.log(v.data)
+      const now = new Date().getTime() / 1000
+      setLoading!(false)
+      // countDown(v.data.end)
+      countDown(now + 30)
+    })
+  }, [setLoading])
 
   useEffect(() => {
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const connect = localStorage.getItem('_is_connect')
+
     const findByAddress = () => {
-      axios.get(`${T.HTTP_SERVER}events/lotteries/tickets/findByAddress?address=${currentAccount}`).then((v) => {
-        console.log(v.data)
-        if (v.data.address) {
-          setTicket({ message: 'OK', statusCode: 200 })
-        } else {
-          setTicket({ message: v.data.message, statusCode: v.data.statusCode })
-        }
-      })
-    }
-
-    const getTime = () => {
-      axios.get(`${T.HTTP_SERVER}events/lotteries/times`).then((v) => {
-        console.log(v.data)
-        setActivityTime({
-          start: v.data.start,
-          end: v.data.end
+      setLoading!(true)
+      axios.get(`${T.HTTP_SERVER}events/lotteries/tickets/findByAddress?address=${address}`)
+        .then((v) => {
+          if (v.data.address) {
+            getNft()
+            .then((nft) => {
+              if (nft.data.users.length) {
+                setBtnStatus(4)
+                setLoading!(false)
+                setNftInfns(nft.data.users[0].tokens[0].id)
+              } else {
+                getTime()
+                setBtnStatus(2)
+              }
+            })
+            .catch(() => {
+              setLoading!(false)
+              setBtnStatus(2)
+            })
+          } else {
+            setLoading!(false)
+            setBtnStatus(1)
+          }
         })
-      })
+        .catch((e) => {
+          setLoading!(false)
+          setBtnStatus(1)
+        })
     }
 
-    const countDown = () => {
-      const now = new Date().getTime() / 1000
-      const timer = setInterval(() => {
-        if (now > activityTime.end) {
-          clearInterval(timer)
-        }
-        setCountdown(T.countDown(activityTime.end))
-      }, 1000)
-    }
-
-    if (!ticket.message) {
+    if (address && connect) {
       findByAddress()
     }
-    if (!activityTime.start) {
-      getTime()
-    }
 
-    countDown()
-  }, [ticket.message, currentAccount, activityTime.start, activityTime.end])
-
-
-  const getBtnStatus = (): string => {
-    const now = new Date().getTime() / 1000
-    if (now <= activityTime.end) {
-      if (ticket.statusCode === 200) {
-        return countdown + ' ' + T.Lan[currentLan].mint
-      } else {
-        return T.Lan[currentLan].get_white_list
-      }
-    } else {
-      return T.Lan[currentLan].mint
-    }
-  }
+  }, [address, getTime, getNft, setLoading])
 
   return (
     <div className="mint-content relative">
@@ -123,114 +137,93 @@ const MintContent: FC<Prop> = () => {
           />
           <div className="text-lg text-orange-100 leading-7">{T.Lan[currentLan].dec}</div>
           <div className="inline-block mt-24 flex justify-end">
-            <BaseBtn
-              btnText={getBtnStatus()}
-              handleClick={async () => {
-                if (!currentAccount) {
-                  handleShowToast('wallet')
-                } else {
-                  setLoading!(true)
-                  const nft = await getNft()
-                  setLoading!(false)
-                  if (nft.data.users.length) {
-                    setShowModal!(true)
-                    setShowNFT!(true)
-
-                    setNftInfo!({ id: nft.data.users[0].tokens[0].id })
+            {
+              btnStatus === 1
+              &&
+              <BaseBtn
+                btnText={T.Lan[currentLan].get_white_list}
+                handleClick={() => {
+                  if (!address) {
+                    handleShowToast('wallet')
                     return
                   }
-                  const now = new Date().getTime() / 1000
-                  // time
-                  if (now <= activityTime.end) {
-                    if (ticket.statusCode !== 200) {
-                      // login
-                      setLoading!(true)
-                      const L = new T.Login(currentAccount)
-                      L.login().then((r: any) => {
-                        setLoading!(false)
-                        if (r.status === 'success') {
-                          handleShowToast('white_success')
-                        } else {
-                          handleShowToast('white_fail')
-                        }
-                      })
-                    } else {
-                      // activity not start 
-                      handleShowToast('act_not_start')
-                    }
-
-                  } else {
-                    if (ticket.statusCode !== 200) {
-                      // not hava ticket
-                      handleShowToast('join_act')
-                    } else {
-                      // claim
-                      setLoading!(true)
-                      const C = new T.Claim(currentAccount, amount)
-
-                      C.claim().then((r: any) => {
-                        setLoading!(false)
-                        console.log(r, 'ssss----,,,..')
-                        if (r.status === 'success') {
-                          handleShowToast('white_success')
-                        } else {
-                          handleShowToast('white_fail')
-                        }
-                      })
-                    }
-                  }
-                }
-              }}
-            />
-            
-          </div>
-          <BaseBtn
-              btnText="test login"
-              handleClick={() => {
-                // login
-                setLoading!(true)
-                if (currentAccount) {
-                  const L = new T.Login(currentAccount)
+                  setLoading!(true)
+                  const L = new T.Login(address)
                   L.login().then((r: any) => {
                     setLoading!(false)
                     if (r.status === 'success') {
                       handleShowToast('white_success')
+                      getTime()
+                      setBtnStatus(2)
                     } else {
                       handleShowToast('white_fail')
                     }
                   })
-                }
-              }}
-            />
-            <BaseBtn
-              btnText="test claim"
-              handleClick={() => {
-                setLoading!(true)
-                if (currentAccount) {
-                  const C = new T.Claim(currentAccount, amount)
+                }}
+              />
+            }
+            {
+              btnStatus === 2
+              &&
+              <BaseBtn
+                btnText={countdown + ' ' + T.Lan[currentLan].mint}
+                handleClick={() => {
+                  handleShowToast('act_not_start')
+                }}
+              />
+            }
+            {
+              btnStatus === 3
+              &&
+              <BaseBtn
+                btnText={T.Lan[currentLan].mint}
+                handleClick={() => {
+                  if (!address) {
+                    handleShowToast('wallet')
+                    return
+                  }
+                  setLoading!(true)
+                  const C = new T.Claim(address, amount, chainId)
 
                   C.claim().then((r: any) => {
                     setLoading!(false)
-                    console.log(r, 'ssss----,,,..')
                     if (r.status === 'success') {
-                      handleShowToast('white_success')
+                      handleShowToast(r.msg)
+                      setBtnStatus(5)
                     } else {
-                      handleShowToast('white_fail')
+                      handleShowToast(r.msg)
                     }
                   })
-                }
-              }}
-            />
-            <input 
-              type="number" 
-              value={amount}
-              style={{border: '1px solid #333'}}
-              onChange={(e) => {
-                console.log(e.target.value)
-                setAmount(+e.target.value)
-              }}
-            />
-            <div>test amount & nonce</div>
+                }}
+              />
+            }
+            {
+              btnStatus === 4
+              &&
+              <BaseBtn
+                btnText={T.Lan[currentLan].show}
+                handleClick={() => {
+                  if (!address) {
+                    handleShowToast('wallet')
+                    return
+                  }
+                  setShowModal!(true)
+                  setShowNFT!(true)
+                  setNftInfo!({ id: nftInfo })
+                }}
+              />
+            }
+          </div>
+          <input
+            type="number"
+            value={amount}
+            style={{ border: '1px solid #333' }}
+            onChange={(e) => {
+              console.log(e.target.value)
+              setAmount(+e.target.value)
+            }}
+          />
+          <div>test amount & nonce</div>
         </div>
       </div>
 

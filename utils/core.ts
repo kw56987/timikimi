@@ -5,7 +5,6 @@ import {
 	EIP712LoginData,
 	getEIP712NftClaimData,
 	EIP712NftClaimData,
-	signEIP712NftClaimData,
 	CreatureContract
 } from '@volare.finance/utils.js'
 import * as T from '../utils'
@@ -78,16 +77,18 @@ class Claim {
 	account: string
 	nonce: number = 0
 	claimData!: EIP712NftClaimData
+	chianId: number = 0
 
-	constructor(account: string, nonce: number) {
+	constructor(account: string, nonce: number, chainId: number) {
 		this.account = account,
-		this.nonce = nonce
+		this.nonce = nonce,
+		this.chianId = chainId
 	}
 
 	getClaimData() {
 		return getEIP712NftClaimData(
 			{
-				chainId: ChainId.Mumbai,
+				chainId: this.chianId,
 				name: 'Creature',
 				verifyingContract: T.CONTRACT_ADDRESS
 			},
@@ -101,17 +102,14 @@ class Claim {
 
 	async signClaimData() {
 		const signer = await T.getSigner()
+		console.log(T.DEFAULT_CHAIN[this.chianId].rpcUrls[0])
 		return new Promise(async resolve => {
 			try {
-				const [claimSig, claimSigBytes] = await signEIP712NftClaimData(
-					signer,
-					this.claimData
-				)
 				const creature = new CreatureContract(
-					T.DEFAULT_CHAIN_RPC,
+					T.DEFAULT_CHAIN[this.chianId].rpcUrls[0],
 					T.CONTRACT_ADDRESS
 				)
-				const aaa = await axios.post(`${T.HTTP_SERVER}eth/nft/claims/sign`, {
+				const r = await axios.post(`${T.HTTP_SERVER}eth/nft/claims/sign`, {
 					name: this.claimData.domain.name,
 					version: this.claimData.domain.version,
 					chainId: this.claimData.domain.chainId,
@@ -125,16 +123,14 @@ class Claim {
 						this.account,
 						this.nonce,
 						this.nonce,
-						aaa.data.signature
+						r.data.signature
 					)
-					console.log(a, 'claim-data------<<<<,')
-					resolve({ status: 'success', msg: 'mint success' })
+					resolve({ status: 'success', msg: 'mint_ok' })
 				} catch (error) {
-					console.log(error, 'ssss---99999')
-					resolve({ status: 'fail', msg: 'fail' })
+					resolve({ status: 'fail', msg: 'chance' })
 				}
 			} catch (error) {
-				resolve({ status: 'fail', msg: 'fail' })
+				resolve({ status: 'fail', msg: 'not_whitelist' })
 			}
 		})
 	}

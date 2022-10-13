@@ -19,29 +19,19 @@ const Home: NextPage = () => {
   const [isShowModal, setShowModal] = useState<boolean>(false)
   const [isShowWalletSelect, setShowWalletSelect] = useState<boolean>(false)
   const [isShowNFT, setShowNFT] = useState<boolean>(false)
-  const [currentAccount, setCurrentAccount] = useState<string>('')
-  const [currentChianId, setCurrentChianId] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [nftInfo, setNftInfo] = useState<{ id: string }>({ id: '0' })
 
   useEffect(() => {
     const storageLan = localStorage.getItem('_current_lan') as 'JP' | 'EN'
-    const currentAccount = localStorage.getItem('_select_account') || ''
-    const currentChianId = localStorage.getItem('_select_chain_id') || (T.CHAIN_INFO.DEFAULT_CHAIN_ID + '')
-    if (currentAccount) {
-      setCurrentAccount(currentAccount)
-    }
-    if (currentChianId) {
-      setCurrentChianId(currentChianId)
-      localStorage.setItem('_select_chain_id', T.CHAIN_INFO.DEFAULT_CHAIN_ID + '')
-    }
+
     if (storageLan) {
       setCurrentLan(storageLan)
     }
   }, [])
 
   return (
-    <BaseCtx.Provider value={{ currentLan, setCurrentLan, isShowToast, setShowToast, isShowModal, setShowModal, isShowWalletSelect, setShowWalletSelect, isShowNFT, setShowNFT, toastText, setToastText, toastType, setToastType, currentAccount, setCurrentAccount, currentChianId, setCurrentChianId, loading, setLoading, nftInfo, setNftInfo }}>
+    <BaseCtx.Provider value={{ currentLan, setCurrentLan, isShowToast, setShowToast, isShowModal, setShowModal, isShowWalletSelect, setShowWalletSelect, isShowNFT, setShowNFT, toastText, setToastText, toastType, setToastType, loading, setLoading, nftInfo, setNftInfo }}>
       <Base
         tdk={{ title: 'Timikimi | Home page' }}
       >
