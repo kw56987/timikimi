@@ -1,12 +1,13 @@
 import { FC, useContext } from "react";
 import Image from "next/image";
 import metamaskPic from '../../public/assets/img/metamask-icon.png'
-import * as T from '../../utils'
 import BaseCtx from '../../base-content'
 import { useWeb3 } from '@3rdweb/hooks'
 
-const WalletSelect: FC = () => {
-  const { setShowModal } = useContext(BaseCtx)
+type Prop = {}
+
+const WalletSelect: FC<Prop> = ({ }) => {
+  const { setShowModal, setShowWalletSelect, setCurrentChianId } = useContext(BaseCtx)
 
   const { connectWallet } = useWeb3()
 
@@ -16,10 +17,15 @@ const WalletSelect: FC = () => {
       <div>
         <div
           className="pl-custom-w-100 pr-custom-w-100 flex items-center justify-start cursor-pointer hover:bg-custom-600 h-20"
-          onClick={() => {
+          onClick={async () => {
             connectWallet('injected')
             localStorage.setItem('_is_connect', 'YES')
             setShowModal!(false)
+            setShowWalletSelect!(false)
+
+            // @ts-ignore
+            const cid = window.ethereum?.chainId.toString(10) || 0
+            setCurrentChianId!(cid)
           }}
         >
           <Image

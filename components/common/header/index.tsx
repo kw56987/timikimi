@@ -1,4 +1,4 @@
-import { FC, useContext, useRef, useEffect, useState } from "react";
+import { FC, useContext, useRef, useEffect, useState, useCallback } from "react";
 import Image from 'next/image'
 import LogoPic from '../../../public/assets/img/logo.png'
 import TwitterPic from '../../../public/assets/img/twitter.png'
@@ -12,13 +12,24 @@ interface Prop { }
 
 const Header: FC<Prop> = () => {
 
-  const { setCurrentLan, currentLan, setShowModal, setShowWalletSelect, setShowToast, setToastText, setToastType, setLoading } = useContext(BaseCtx)
+  const { setCurrentLan, currentLan, setShowModal, setShowWalletSelect, setShowToast, setToastText, setToastType, setLoading, currentChianId = '0', setCurrentChianId } = useContext(BaseCtx)
   const [isShowSwitch, setShowSwitch] = useState(false)
 
-  const { address, chainId = -1 } = useWeb3()
+  const { address, chainId = 0 } = useWeb3()
   const { switchNetwork } = useSwitchNetwork()
 
   const isFirstRender = useRef(true);
+
+  const handleShowToast = useCallback((text: string) => {
+    setShowToast!(true)
+    setToastText!(text)
+    setToastType!('Warn')
+
+    const timer = setTimeout(() => {
+      setShowToast!(false)
+      clearTimeout(timer)
+    }, 2000)
+  }, [setShowToast, setToastText, setToastType])
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -26,26 +37,17 @@ const Header: FC<Prop> = () => {
       return;
     }
 
-    const handleShowToast = (text: string) => {
-      setShowToast!(true)
-      setToastText!(text)
-      setToastType!('Warn')
-
-      const timer = setTimeout(() => {
-        setShowToast!(false)
-        clearTimeout(timer)
-      }, 2000)
-    }
-
     const connect = localStorage.getItem('_is_connect')
 
-    if (!T.SUPPORTED_CHAIN_IDS.includes(chainId) && connect && chainId === -1) {
-      setShowSwitch(true)
-      // handleShowToast(`Please switch to chain id {${T.SUPPORTED_CHAIN_IDS.join(',')}}`)
-    } else {
-      setShowSwitch(false)
+    if (connect) {
+      if (T.SUPPORTED_CHAIN_IDS.includes(+currentChianId) || chainId) {
+        setShowSwitch(false)
+      } else {
+        setShowSwitch(true)
+        handleShowToast(`Please switch to chain id {${T.SUPPORTED_CHAIN_IDS.join(',')}}`)
+      }
     }
-  }, [chainId, setShowToast, setToastText, setToastType, setLoading]);
+  }, [chainId, setLoading, currentChianId, handleShowToast, setCurrentChianId]);
 
   return (
     <div className="h-nav bg-nav-bg flex items-center justify-between pl-nav-p pr-nav-p">

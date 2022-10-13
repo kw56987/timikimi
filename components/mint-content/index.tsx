@@ -92,20 +92,20 @@ const MintContent: FC<Prop> = () => {
         .then((v) => {
           if (v.data.address) {
             getNft()
-            .then((nft) => {
-              if (nft.data.users.length) {
-                setBtnStatus(4)
+              .then((nft) => {
+                if (nft.data.users.length) {
+                  setBtnStatus(4)
+                  setLoading!(false)
+                  setNftInfns(nft.data.users[0].tokens[0].id)
+                } else {
+                  getTime()
+                  setBtnStatus(2)
+                }
+              })
+              .catch(() => {
                 setLoading!(false)
-                setNftInfns(nft.data.users[0].tokens[0].id)
-              } else {
-                getTime()
                 setBtnStatus(2)
-              }
-            })
-            .catch(() => {
-              setLoading!(false)
-              setBtnStatus(2)
-            })
+              })
           } else {
             setLoading!(false)
             setBtnStatus(1)

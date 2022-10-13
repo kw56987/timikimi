@@ -21,17 +21,18 @@ const Home: NextPage = () => {
   const [isShowNFT, setShowNFT] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [nftInfo, setNftInfo] = useState<{ id: string }>({ id: '0' })
+  const [currentChianId, setCurrentChianId] = useState<string>('')
 
   useEffect(() => {
     const storageLan = localStorage.getItem('_current_lan') as 'JP' | 'EN'
-
+    
     if (storageLan) {
       setCurrentLan(storageLan)
     }
   }, [])
 
   return (
-    <BaseCtx.Provider value={{ currentLan, setCurrentLan, isShowToast, setShowToast, isShowModal, setShowModal, isShowWalletSelect, setShowWalletSelect, isShowNFT, setShowNFT, toastText, setToastText, toastType, setToastType, loading, setLoading, nftInfo, setNftInfo }}>
+    <BaseCtx.Provider value={{ currentLan, setCurrentLan, isShowToast, setShowToast, isShowModal, setShowModal, isShowWalletSelect, setShowWalletSelect, isShowNFT, setShowNFT, toastText, setToastText, toastType, setToastType, loading, setLoading, nftInfo, setNftInfo, currentChianId, setCurrentChianId }}>
       <Base
         tdk={{ title: 'Timikimi | Home page' }}
       >
