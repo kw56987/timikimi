@@ -7,7 +7,7 @@ import { useWeb3 } from '@3rdweb/hooks'
 type Prop = {}
 
 const WalletSelect: FC<Prop> = ({ }) => {
-  const { setShowModal, setShowWalletSelect, setCurrentChianId } = useContext(BaseCtx)
+  const { setShowModal, setShowWalletSelect } = useContext(BaseCtx)
 
   const { connectWallet } = useWeb3()
 
@@ -22,10 +22,6 @@ const WalletSelect: FC<Prop> = ({ }) => {
             localStorage.setItem('_is_connect', 'YES')
             setShowModal!(false)
             setShowWalletSelect!(false)
-
-            // @ts-ignore
-            const cid = window.ethereum?.chainId.toString(10) || 0
-            setCurrentChianId!(cid)
           }}
         >
           <Image

@@ -11,7 +11,7 @@ interface Prop { }
 
 const MintContent: FC<Prop> = () => {
 
-  const { currentLan, setShowToast, setToastText, setToastType, setLoading, setShowModal, setShowNFT, setNftInfo } = useContext(BaseCtx)
+  const { currentLan, setShowToast, setToastText, setToastType, setLoading, setShowModal, setShowNFT, setNftInfo, setShowWalletSelect } = useContext(BaseCtx)
 
   /* 1 not white list 
   *  2 in white list and activity not start
@@ -84,8 +84,6 @@ const MintContent: FC<Prop> = () => {
       return;
     }
 
-    const connect = localStorage.getItem('_is_connect')
-
     const findByAddress = () => {
       setLoading!(true)
       axios.get(`${T.HTTP_SERVER}events/lotteries/tickets/findByAddress?address=${address}`)
@@ -117,7 +115,7 @@ const MintContent: FC<Prop> = () => {
         })
     }
 
-    if (address && connect) {
+    if (address) {
       findByAddress()
     }
 
@@ -209,6 +207,7 @@ const MintContent: FC<Prop> = () => {
                   }
                   setShowModal!(true)
                   setShowNFT!(true)
+                  setShowWalletSelect!(false)
                   setNftInfo!({ id: nftInfo })
                 }}
               />

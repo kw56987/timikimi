@@ -12,10 +12,10 @@ interface Prop { }
 
 const Header: FC<Prop> = () => {
 
-  const { setCurrentLan, currentLan, setShowModal, setShowWalletSelect, setShowToast, setToastText, setToastType, setLoading, currentChianId = '0', setCurrentChianId } = useContext(BaseCtx)
+  const { setCurrentLan, currentLan, setShowModal, setShowWalletSelect, setShowToast, setToastText, setToastType, setLoading, currentChianId = '0', setShowNFT } = useContext(BaseCtx)
   const [isShowSwitch, setShowSwitch] = useState(false)
 
-  const { address, chainId = 0 } = useWeb3()
+  const { address, chainId = 0, error } = useWeb3()
   const { switchNetwork } = useSwitchNetwork()
 
   const isFirstRender = useRef(true);
@@ -28,7 +28,7 @@ const Header: FC<Prop> = () => {
     const timer = setTimeout(() => {
       setShowToast!(false)
       clearTimeout(timer)
-    }, 2000)
+    }, 3000)
   }, [setShowToast, setToastText, setToastType])
 
   useEffect(() => {
@@ -37,17 +37,18 @@ const Header: FC<Prop> = () => {
       return;
     }
 
-    const connect = localStorage.getItem('_is_connect')
-
-    if (connect) {
-      if (T.SUPPORTED_CHAIN_IDS.includes(+currentChianId) || chainId) {
-        setShowSwitch(false)
-      } else {
-        setShowSwitch(true)
-        handleShowToast(`Please switch to chain id {${T.SUPPORTED_CHAIN_IDS.join(',')}}`)
-      }
+    if (error?.message === 'The user rejected the request.') {
+      handleShowToast('You rejected the request')
     }
-  }, [chainId, setLoading, currentChianId, handleShowToast, setCurrentChianId]);
+
+    if (error?.message.includes('Unsupported chain id')) {
+      setShowSwitch(true)
+      handleShowToast(error?.message)
+    } else {
+      setShowSwitch(false)
+    }
+
+  }, [chainId, setLoading, currentChianId, handleShowToast, error]);
 
   return (
     <div className="h-nav bg-nav-bg flex items-center justify-between pl-nav-p pr-nav-p">
@@ -130,6 +131,7 @@ const Header: FC<Prop> = () => {
                 } else {
                   setShowModal!(true)
                   setShowWalletSelect!(true)
+                  setShowNFT!(false)
                 }
               }}
             />
