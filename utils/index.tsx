@@ -1,5 +1,5 @@
 import { TDK, RpcError, Res, ChainType } from './types'
-import { DEFAULT_DEC, DEFAULT_KEYWORD, DEFAULT_TITLE, DEFAULT_CHAIN, HTTP_SERVER, CONTRACT_ADDRESS, GRAPH_QL_SERVER, SUPPORTED_CHAIN_IDS, DEFAULT_SUPPORTED_CHAIN_ID } from './constant'
+import { DEFAULT_DEC, DEFAULT_KEYWORD, DEFAULT_TITLE, DEFAULT_CHAIN, HTTP_SERVER, CONTRACT_ADDRESS, GRAPH_QL_SERVER, SUPPORTED_CHAIN_IDS, DEFAULT_SUPPORTED_CHAIN_ID, PLAY_ICON_BASE64 } from './constant'
 import Lan from './lan'
 import { formatAddress, getSigner, countDown, GraphQl } from './tools'
 import { Login, Claim } from './core'
@@ -18,6 +18,7 @@ export {
   GRAPH_QL_SERVER,
   SUPPORTED_CHAIN_IDS,
   DEFAULT_SUPPORTED_CHAIN_ID,
+  PLAY_ICON_BASE64,
   Lan,
   formatAddress,
   getSigner,

@@ -20,10 +20,10 @@ const Header: FC<Prop> = () => {
 
   const isFirstRender = useRef(true);
 
-  const handleShowToast = useCallback((text: string) => {
+  const handleShowToast = useCallback((text: string, type: 'Warn' | 'Info' = 'Warn') => {
     setShowToast!(true)
     setToastText!(text)
-    setToastType!('Warn')
+    setToastType!(type)
 
     const timer = setTimeout(() => {
       setShowToast!(false)
@@ -126,13 +126,15 @@ const Header: FC<Prop> = () => {
             <BaseBtn
               btnText={!isShowSwitch ? T.Lan[currentLan].connect : T.Lan[currentLan].switch}
               handleClick={() => {
-                if (isShowSwitch) {
-                  switchNetwork(T.DEFAULT_SUPPORTED_CHAIN_ID)
-                } else {
-                  setShowModal!(true)
-                  setShowWalletSelect!(true)
-                  setShowNFT!(false)
-                }
+                handleShowToast(T.Lan[currentLan].come, 'Info')
+
+                // if (isShowSwitch) {
+                //   switchNetwork(T.DEFAULT_SUPPORTED_CHAIN_ID)
+                // } else {
+                //   setShowModal!(true)
+                //   setShowWalletSelect!(true)
+                //   setShowNFT!(false)
+                // }
               }}
             />
         }

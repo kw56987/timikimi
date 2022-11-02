@@ -12,6 +12,7 @@ interface Prop { }
 const MintContent: FC<Prop> = () => {
 
   const { currentLan, setShowToast, setToastText, setToastType, setLoading, setShowModal, setShowNFT, setNftInfo, setShowWalletSelect } = useContext(BaseCtx)
+  const [showVideo, setShowVideo] = useState(false)
 
   /* 1 not white list 
   *  2 in white list and activity not start
@@ -77,55 +78,83 @@ const MintContent: FC<Prop> = () => {
     })
   }, [setLoading])
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+  //   if (isFirstRender.current) {
+  //     isFirstRender.current = false;
+  //     return;
+  //   }
 
-    const findByAddress = () => {
-      setLoading!(true)
-      axios.get(`${T.HTTP_SERVER}events/lotteries/tickets/findByAddress?address=${address}`)
-        .then((v) => {
-          if (v.data.address) {
-            getNft()
-              .then((nft) => {
-                if (nft.data.users.length) {
-                  setBtnStatus(4)
-                  setLoading!(false)
-                  setNftInfns(nft.data.users[0].tokens[0].id)
-                } else {
-                  getTime()
-                  setBtnStatus(2)
-                }
-              })
-              .catch(() => {
-                setLoading!(false)
-                setBtnStatus(2)
-              })
-          } else {
-            setLoading!(false)
-            setBtnStatus(1)
-          }
-        })
-        .catch((e) => {
-          setLoading!(false)
-          setBtnStatus(1)
-        })
-    }
+  //   const findByAddress = () => {
+  //     setLoading!(true)
+  //     axios.get(`${T.HTTP_SERVER}events/lotteries/tickets/findByAddress?address=${address}`)
+  //       .then((v) => {
+  //         if (v.data.address) {
+  //           getNft()
+  //             .then((nft) => {
+  //               if (nft.data.users.length) {
+  //                 setBtnStatus(4)
+  //                 setLoading!(false)
+  //                 setNftInfns(nft.data.users[0].tokens[0].id)
+  //               } else {
+  //                 getTime()
+  //                 setBtnStatus(2)
+  //               }
+  //             })
+  //             .catch(() => {
+  //               setLoading!(false)
+  //               setBtnStatus(2)
+  //             })
+  //         } else {
+  //           setLoading!(false)
+  //           setBtnStatus(1)
+  //         }
+  //       })
+  //       .catch((e) => {
+  //         setLoading!(false)
+  //         setBtnStatus(1)
+  //       })
+  //   }
 
-    if (address) {
-      findByAddress()
-    }
+  //   if (address) {
+  //     findByAddress()
+  //   }
 
-  }, [address, getTime, getNft, setLoading])
+  // }, [address, getTime, getNft, setLoading])
 
   return (
     <div className="mint-content relative">
       <div className="absolute inset-0 mint-mask blur"></div>
       <div className="relative z-10 flex items-center justify-center">
-        <div className="nft-bg mr-10"></div>
+        <div className="mr-10">
+          <div style={{ width: '303px', height: '540px', position: 'relative' }}>
+            <video
+              width="303"
+              height="540"
+              controls
+              id="m-vidoe"
+              loop
+            >
+              <source src={require('/public/assets/video/show.mp4')} />
+              您的浏览器不支持 HTML5 video 标签。
+            </video>
+            {
+              !showVideo
+              &&
+              <div
+                className="flex items-center justify-center h-full nft-bg cursor-pointer absolute inset-0"
+                onClick={() => {
+                  setShowVideo(true)
+                  const v = document.getElementById('m-vidoe') as HTMLVideoElement
+                  v.play()
+                }}
+              >
+                <Image src={T.PLAY_ICON_BASE64} width={40} height={40} alt=""></Image>
+              </div>
+            }
+
+          </div>
+        </div>
         <div className="flex-1">
           <Image
             alt="logo"
@@ -141,22 +170,23 @@ const MintContent: FC<Prop> = () => {
               <BaseBtn
                 btnText={T.Lan[currentLan].get_white_list}
                 handleClick={() => {
-                  if (!address) {
-                    handleShowToast('wallet')
-                    return
-                  }
-                  setLoading!(true)
-                  const L = new T.Login(address)
-                  L.login().then((r: any) => {
-                    setLoading!(false)
-                    if (r.status === 'success') {
-                      handleShowToast('white_success')
-                      getTime()
-                      setBtnStatus(2)
-                    } else {
-                      handleShowToast('white_fail')
-                    }
-                  })
+                  handleShowToast('come')
+                  // if (!address) {
+                  //   handleShowToast('wallet')
+                  //   return
+                  // }
+                  // setLoading!(true)
+                  // const L = new T.Login(address)
+                  // L.login().then((r: any) => {
+                  //   setLoading!(false)
+                  //   if (r.status === 'success') {
+                  //     handleShowToast('white_success')
+                  //     getTime()
+                  //     setBtnStatus(2)
+                  //   } else {
+                  //     handleShowToast('white_fail')
+                  //   }
+                  // })
                 }}
               />
             }
@@ -213,7 +243,7 @@ const MintContent: FC<Prop> = () => {
               />
             }
           </div>
-          <input
+          {/* <input
             type="number"
             value={amount}
             style={{ border: '1px solid #333' }}
@@ -222,7 +252,7 @@ const MintContent: FC<Prop> = () => {
               setAmount(+e.target.value)
             }}
           />
-          <div>test amount & nonce</div>
+          <div>test amount & nonce</div> */}
         </div>
       </div>
 

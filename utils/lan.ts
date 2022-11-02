@@ -19,7 +19,8 @@ const Lan: LanType  = {
     mint_success: 'mint success',
     show: 'Show nft',
     mint_ok: 'Mint success, refresh the page later to view',
-    chance: 'Only one mint per account'
+    chance: 'Only one mint per account',
+    come: 'Comming soon'
   },
   JP: {
     dec: 'ティミキミは、自分のペットを育て、繁殖させ、世話をすることができるカジュアルなゲームです。ティミキミが成長すると、あらゆる種類のタスクを実行し、ティミバースを旅することができます。',
@@ -38,7 +39,8 @@ const Lan: LanType  = {
     mint_success: '铸造成功',
     show: 'NFTを見る',
     mint_ok: '铸造成功, 後でページを更新して表示する',
-    chance: 'アカウントごとに 1 つのミントのみ'
+    chance: 'アカウントごとに 1 つのミントのみ',
+    come: '近日公開'
   }
 }
 
